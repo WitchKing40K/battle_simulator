@@ -54,7 +54,13 @@ Groups preserve their ranks and files relative to their current facing when
 assigning destination slots. Across open ground, blocks advance together at the
 slowest member's pace and maintain their relative positions. They wheel around a
 shared pivot to change direction; outer blocks travel farther, while inner blocks
-move more slowly. No block exceeds its own marching speed.
+move more slowly. Each moving block turns toward its own direction of travel, including
+during wheels, column movement, and deployment. Once stopped at its destination,
+it turns to the ordered formation facing. Rotation uses the marching speed at
+its outer corners: angular speed is speed divided by the center-to-corner radius.
+For a 50 m block moving at 10 m/s, a 90-degree turn takes about 5.6 seconds.
+This rate applies while moving, turning in place, and engaging enemies.
+No block exceeds its own marching speed.
 
 Orders use an assembly point behind the destination before deployment. When the
 whole body cannot fit a route or a wheel, it moves in a column. Followers follow
@@ -66,23 +72,26 @@ At deployment, blocks advance together, sharing progress so they reach their
 slots together even when their approach distances differ. There is no arrival
 queue. Units can overlap during free movement. Nearby orders deploy directly.
 The HUD reports marching, wheeling, column movement, deployment, or engagement.
-Facing arrows show block orientation. Rotated final layouts preserve at least
-15 m of spacing. Map boundaries still constrain movement.
+Blocks, selection outlines, and order previews rotate freely to any facing angle.
+Right-drag at any angle to choose the final orientation; individual units finish
+turning after arrival. Facing arrows show block orientation. Rotated final layouts preserve at least
+15 m between rotated square edges. Right-drag formation spacing stays
+the same at every angle. Map boundaries still constrain movement.
 
-Opponents automatically engage when the gap between their square edges is at most
+Opponents automatically engage when the gap between their rotated square edges is at most
 50 m. The nearest opponents are matched first. A free unit can also engage an enemy
 that is already fighting. The newcomer closes to contact and faces that enemy;
 the existing combatants retain their original engagement and facing.
 Both units cancel their orders, leave any formation, and close at their movement
-speeds until their axis-aligned squares touch. They stop translating at contact
-and rotate to face each other using the normal turn rate. Move orders are ignored
+speeds until their rotated squares touch with a 0 m edge gap. They turn to face
+each other using the normal turn rate, adjusting contact as their footprints rotate. Move orders are ignored
 for engaged units; other selected units can still receive orders. Engagements
 persist indefinitely. There is no damage, health, morale, or attack animation.
 
 `combat.py` owns engagement acquisition, contact movement, and facing.
 `maneuvers.py` coordinates group orders. `pathfinding.py` provides rectangle routing;
 free-moving units do not contribute obstacles. Engaged enemies are solid to
-individual, formation, and combat movement. Contact movement stops at square
+individual, formation, and combat movement. Contact movement stops at rotated square
 boundaries, including when additional units join an existing fight.
 `units.py` owns selection, formation slots, and simulation; `selection.py` handles
 mouse gestures, and `main.py` renders the field, facing, and movement orders.

@@ -102,16 +102,17 @@ def draw_facing(screen, center, heading, length, color):
 
 def draw_units(screen, camera, army):
     for unit in army.units:
-        # Transform both square corners through the existing camera, including Y flip.
-        half = unit.size / 2
-        a = camera.to_screen((unit.x - half, unit.y + half), screen.get_size())
-        b = camera.to_screen((unit.x + half, unit.y - half), screen.get_size())
-        rect = pygame.Rect(a, (max(1, b[0] - a[0]), max(1, b[1] - a[1])))
-        pygame.draw.rect(screen, '#5799e0' if unit.team == 'friendly' else '#d65b57', rect)
-        draw_facing(screen, rect.center, unit.facing,
-                    max(3, rect.width * 0.38) if rect.width >= 6 else 0, '#eef2dc')
+        size = screen.get_size()
+        points = [camera.to_screen(p, size) for p in unit.corners()]
+        center = camera.to_screen((unit.x, unit.y), size)
+        side = unit.size * camera.scale
+        pygame.draw.polygon(screen, '#5799e0' if unit.team == 'friendly' else '#d65b57', points)
+        draw_facing(screen, center, unit.facing,
+                    max(3, side * 0.38) if side >= 6 else 0, '#eef2dc')
         if unit.selected:
-            pygame.draw.rect(screen, '#ffe18a', rect.inflate(6, 6), 2)
+            outline = [camera.to_screen(p, size)
+                       for p in unit.corners(padding=3 / camera.scale)]
+            pygame.draw.polygon(screen, '#ffe18a', outline, 2)
 
 
 def draw_destinations(screen, camera, army, selected_only=False):
@@ -127,7 +128,10 @@ def draw_destinations(screen, camera, army, selected_only=False):
         rect.center = center
         color = '#ffe18a' if unit.selected else '#9edbfa'
         pygame.draw.line(screen, color, current, center, 1)
-        pygame.draw.rect(screen, color, rect, 2)
+        heading = unit.ordered_facing if unit.ordered_facing is not None else unit.facing
+        points = [camera.to_screen(p, screen.get_size())
+                  for p in unit.corners(unit.destination, heading)]
+        pygame.draw.polygon(screen, color, points, 2)
         pygame.draw.circle(screen, color, center, 3)
         if unit.ordered_facing is not None:
             draw_facing(screen, center, unit.ordered_facing, side * 0.7, color)
@@ -141,9 +145,11 @@ def draw_interface(screen, camera, font, army, gesture, formation):
         side = max(3, round(unit.size * camera.scale))
         rect = pygame.Rect(0, 0, side, side)
         rect.center = center
-        pygame.draw.rect(screen, "#8de0ac", rect, 2)
         end = camera.to_world(pygame.mouse.get_pos(), screen.get_size()) if formation.dragging else None
         heading = army.order_heading(formation.start, end)
+        points = [camera.to_screen(p, screen.get_size())
+                  for p in unit.corners(position, heading)]
+        pygame.draw.polygon(screen, '#8de0ac', points, 2)
         draw_facing(screen, center, heading, side * 0.7, '#8de0ac')
     if gesture.dragging:
         a = camera.to_screen(gesture.start, screen.get_size())
