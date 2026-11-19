@@ -6,6 +6,7 @@ from functools import lru_cache
 
 import pygame
 
+from maneuvers import angle_delta
 from units import Army, MAP_SIZE, MAP_HALF
 from selection import SelectionGesture, FormationGesture
 
@@ -118,19 +119,22 @@ def draw_units(screen, camera, army):
 def draw_destinations(screen, camera, army, selected_only=False):
     """Draw selected orders, or all friendly orders for the Space overlay."""
     for unit in army.units:
-        if (unit.team != 'friendly' or unit.destination is None or
-                (selected_only and not unit.selected)):
+        if unit.team != 'friendly' or (selected_only and not unit.selected):
             continue
-        center = camera.to_screen(unit.destination, screen.get_size())
+        destination = unit.destination
+        heading = unit.ordered_facing
+        if destination is None:
+            if (unit.engagement is not None or heading is None or
+                    abs(angle_delta(heading, unit.facing)) <= 1e-6):
+                continue
+            destination = (unit.x, unit.y)
+        center = camera.to_screen(destination, screen.get_size())
         current = camera.to_screen((unit.x, unit.y), screen.get_size())
         side = max(4, round(unit.size * camera.scale))
-        rect = pygame.Rect(0, 0, side, side)
-        rect.center = center
         color = '#ffe18a' if unit.selected else '#9edbfa'
         pygame.draw.line(screen, color, current, center, 1)
-        heading = unit.ordered_facing if unit.ordered_facing is not None else unit.facing
         points = [camera.to_screen(p, screen.get_size())
-                  for p in unit.corners(unit.destination, heading)]
+                  for p in unit.corners(destination, heading)]
         pygame.draw.polygon(screen, color, points, 2)
         pygame.draw.circle(screen, color, center, 3)
         if unit.ordered_facing is not None:
@@ -157,16 +161,17 @@ def draw_interface(screen, camera, font, army, gesture, formation):
         rect = pygame.Rect(min(a[0], b[0]), min(a[1], b[1]),
                            abs(b[0] - a[0]), abs(b[1] - a[1]))
         pygame.draw.rect(screen, '#ffe18a', rect, 2)
-    selected_ids = {id(u) for u in army.selected}
-    phases = sorted({order.phase for order in army.orders if order.ids & selected_ids})
-    state = ', '.join({'marching': 'Marching', 'wheeling': 'Wheeling',
-                       'column': 'Marching in column', 'deploying': 'Deploying'}[p]
-                      for p in phases) or 'Ready'
-    engaged = [u for u in army.selected if u.engagement is not None]
-    if engaged:
-        combat_state = ('Closing to engage' if any(u.engagement.state == 'closing' for u in engaged)
-                        else 'Engaged')
-        state = f'{state}, {combat_state}' if phases else combat_state
+    marching = any(u.destination is not None for u in army.selected)
+    turning = any(u.ordered_facing is not None and
+                  abs(angle_delta(u.ordered_facing, u.facing)) > 1e-6
+                  for u in army.selected)
+    state = 'Marching' if marching else 'Turning' if turning else 'Ready'
+    combat_states = {u.combat_state for u in army.selected}
+    combat_state = ', '.join(label for key, label in (
+        ('closing', 'Closing to engage'), ('fighting', 'Fighting'),
+        ('passive', 'Passively engaged')) if key in combat_states)
+    if combat_state:
+        state = f'{state}, {combat_state}' if marching or turning else combat_state
     lines = [
         'BATTLE SIMULATOR  /  REAL TIME',
         'Left: select   |   Ctrl+left: toggle   |   Right drag: formation   |   Middle: pan   |   Wheel: zoom',

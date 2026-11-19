@@ -48,30 +48,20 @@ be smaller than a pixel and precise clicking is difficult; box selection still
 uses their actual world bounds. Simulation continues during camera and selection
 operations.
 
-## Coordinated movement
+## Group movement
 
-Groups preserve their ranks and files relative to their current facing when
-assigning destination slots. Across open ground, blocks advance together at the
-slowest member's pace and maintain their relative positions. They wheel around a
-shared pivot to change direction; outer blocks travel farther, while inner blocks
-move more slowly. Each moving block turns toward its own direction of travel, including
-during wheels, column movement, and deployment. Once stopped at its destination,
-it turns to the ordered formation facing. Rotation uses the marching speed at
-its outer corners: angular speed is speed divided by the center-to-corner radius.
-For a 50 m block moving at 10 m/s, a 90-degree turn takes about 5.6 seconds.
-This rate applies while moving, turning in place, and engaging enemies.
-No block exceeds its own marching speed.
+Group orders assign destination slots to minimize the sum of straight-line
+distances from the units' current positions. Each unit takes its own direct
+route at its own speed, so units can arrive at different times. Friendly units
+can overlap while moving. The final formation keeps its requested shape and
+orientation.
 
-Orders use an assembly point behind the destination before deployment. When the
-whole body cannot fit a route or a wheel, it moves in a column. Followers follow
-the preceding block's trail, and the head waits for stragglers. Column spacing aims
-for a 2 m gap; local maneuvering may use any nonnegative gap. The 15 m interval is
-only the target spacing in the completed formation, not a movement restriction.
+Each unit turns toward its direction of travel while moving and toward the
+ordered facing after arrival. Angular speed is the marching speed divided by
+the distance from the center to an outer corner. For a 50 m block moving at
+10 m/s, a 90-degree turn takes about 5.6 seconds. The same turn rate applies
+during engagements.
 
-At deployment, blocks advance together, sharing progress so they reach their
-slots together even when their approach distances differ. There is no arrival
-queue. Units can overlap during free movement. Nearby orders deploy directly.
-The HUD reports marching, wheeling, column movement, deployment, or engagement.
 Blocks, selection outlines, and order previews rotate freely to any facing angle.
 Right-drag at any angle to choose the final orientation; individual units finish
 turning after arrival. Facing arrows show block orientation. Rotated final layouts preserve at least
@@ -82,16 +72,24 @@ Opponents automatically engage when the gap between their rotated square edges i
 50 m. The nearest opponents are matched first. A free unit can also engage an enemy
 that is already fighting. The newcomer closes to contact and faces that enemy;
 the existing combatants retain their original engagement and facing.
-Both units cancel their orders, leave any formation, and close at their movement
+Both units cancel their orders and close at their movement
 speeds until their rotated squares touch with a 0 m edge gap. They turn to face
 each other using the normal turn rate, adjusting contact as their footprints rotate. Move orders are ignored
 for engaged units; other selected units can still receive orders. Engagements
 persist indefinitely. There is no damage, health, morale, or attack animation.
 
+The HUD distinguishes units closing on an enemy, units fighting in direct
+enemy contact, and passively engaged reinforcements. Engaged allies are solid.
+A unit that reaches the rear or side of an engaged ally stops at contact,
+cancels its order, and joins the engagement passively. More units can pile up
+against it. Passive units turn toward the enemy as clearance allows, become
+fighters on direct enemy contact, and become free if they lose their chain of
+contact to the fight.
+
 `combat.py` owns engagement acquisition, contact movement, and facing.
-`maneuvers.py` coordinates group orders. `pathfinding.py` provides rectangle routing;
-free-moving units do not contribute obstacles. Engaged enemies are solid to
-individual, formation, and combat movement. Contact movement stops at rotated square
+`maneuvers.py` provides turning helpers. `pathfinding.py` provides routing, minimum-cost
+slot assignment, and swept movement checks. Engaged units are solid to
+ordered and combat movement. Contact movement stops at rotated square
 boundaries, including when additional units join an existing fight.
 `units.py` owns selection, formation slots, and simulation; `selection.py` handles
 mouse gestures, and `main.py` renders the field, facing, and movement orders.
@@ -104,8 +102,8 @@ python -m unittest discover -s tests -v
 
 Tests cover selection, enemies, drag threshold, box intersection, formation
 spacing, retargeting, frame-rate independence, and camera transforms across zooms.
-Maneuver tests cover shared pace, wheels, movement through other troops,
-concurrent deployment, synchronized arrival, overlapping destinations, and final facing.
+Movement tests cover independent speeds, minimum-distance slot assignment,
+overlapping destinations, and final facing.
 
 Combat tests cover range, nearest pairing, independent engagements, exact contact,
 facing, unequal sizes and speeds, formation interruption, order priority, and frame-rate independence.
