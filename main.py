@@ -107,7 +107,11 @@ def draw_units(screen, camera, army):
         points = [camera.to_screen(p, size) for p in unit.corners()]
         center = camera.to_screen((unit.x, unit.y), size)
         side = unit.size * camera.scale
-        pygame.draw.polygon(screen, '#5799e0' if unit.team == 'friendly' else '#d65b57', points)
+        pygame.draw.polygon(screen, '#000000', points)
+        if unit.size > 10:
+            interior = [camera.to_screen(p, size) for p in unit.corners(padding=-5)]
+            pygame.draw.polygon(screen, '#5799e0' if unit.team == 'friendly' else '#d65b57',
+                                interior)
         draw_facing(screen, center, unit.facing,
                     max(3, side * 0.38) if side >= 6 else 0, '#eef2dc')
         if unit.selected:

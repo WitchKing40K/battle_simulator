@@ -70,27 +70,33 @@ the same at every angle. Map boundaries still constrain movement.
 
 Opponents automatically engage when the gap between their rotated square edges is at most
 50 m. The nearest opponents are matched first. A free unit can also engage an enemy
-that is already fighting. The newcomer closes to contact and faces that enemy;
-the existing combatants retain their original engagement and facing.
-Both units cancel their orders and close at their movement
-speeds until their rotated squares touch with a 0 m edge gap. They turn to face
-each other using the normal turn rate, adjusting contact as their footprints rotate. Move orders are ignored
+that is already engaged. Closing units stop at square-edge contact with free
+allies. If the primary pair stalls, a reinforcement that gets within fighting
+range can take over the fight. Either member of the primary pair can use its
+available movement to close the gap. Reinforcements hold their facing while
+in fighting range.
+Both units cancel their orders and close at their movement speeds until the gap
+between their rotated square footprints is 8 m. The primary pair turns to face
+each other using the normal turn rate, adjusting spacing as their footprints
+rotate. Move orders are ignored
 for engaged units; other selected units can still receive orders. Engagements
 persist indefinitely. There is no damage, health, morale, or attack animation.
 
-The HUD distinguishes units closing on an enemy, units fighting in direct
-enemy contact, and passively engaged reinforcements. Engaged allies are solid.
-A unit that reaches the rear or side of an engaged ally stops at contact,
-cancels its order, and joins the engagement passively. More units can pile up
-against it. Passive units turn toward the enemy as clearance allows, become
-fighters on direct enemy contact, and become free if they lose their chain of
+The HUD distinguishes units closing on an enemy, units within fighting range, and passively engaged reinforcements. Fighting and passively
+engaged allies are solid to units moving freely.
+A unit that reaches the rear or side of a solid ally stops at contact,
+cancels its order, and joins the engagement passively. It then settles toward
+its ally. While closing, fighting, or providing passive support, engaged allies
+can share up to 20% of the smaller unit’s footprint area, measured from the
+intersection of their rotated squares. More units can
+pile up against the reinforcement.
+Passive units turn toward the enemy as clearance allows, become
+fighters within 8 m of an opposing footprint, and become free if they lose their chain of
 contact to the fight.
 
 `combat.py` owns engagement acquisition, contact movement, and facing.
 `maneuvers.py` provides turning helpers. `pathfinding.py` provides routing, minimum-cost
-slot assignment, and swept movement checks. Engaged units are solid to
-ordered and combat movement. Contact movement stops at rotated square
-boundaries, including when additional units join an existing fight.
+slot assignment, and swept movement checks.
 `units.py` owns selection, formation slots, and simulation; `selection.py` handles
 mouse gestures, and `main.py` renders the field, facing, and movement orders.
 
@@ -105,5 +111,5 @@ spacing, retargeting, frame-rate independence, and camera transforms across zoom
 Movement tests cover independent speeds, minimum-distance slot assignment,
 overlapping destinations, and final facing.
 
-Combat tests cover range, nearest pairing, independent engagements, exact contact,
+Combat tests cover range, nearest pairing, independent engagements, exact fighting range,
 facing, unequal sizes and speeds, formation interruption, order priority, and frame-rate independence.
