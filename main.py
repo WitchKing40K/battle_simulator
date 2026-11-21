@@ -194,7 +194,9 @@ def draw_interface(screen, camera, font, army, gesture, formation):
     if combat_state:
         state = f'{state}, {combat_state}' if marching or turning else combat_state
     hovered = army.hit(camera.to_world(pygame.mouse.get_pos(), screen.get_size()))
-    strength = f'   |   Unit under cursor: {hovered.men_alive} alive' if hovered else ''
+    strength = ''
+    if hovered:
+        strength = f'   |   Hovered: {hovered.men_alive} alive, {hovered.vigour:.1f} vigour'
     lines = [
         'BATTLE SIMULATOR  /  REAL TIME',
         'Left: select   |   Ctrl+left: toggle   |   Right drag: formation   |   Middle: pan   |   Wheel: zoom',

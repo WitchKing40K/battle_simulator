@@ -38,7 +38,7 @@ On Windows, use `py` instead of `python3` and activate with `.venv\Scripts\activ
 - Selected units always show their active movement destinations, order lines,
   and ordered facing. Hold Space to show orders for all friendly units; release
   Space to return to selected units only.
-- Hover over a unit to see how many men are alive. Drag the middle mouse
+- Hover over a unit to see how many men are alive and its vigour. Drag the middle mouse
   button to pan. Scroll to zoom around the cursor.
 - Use the bottom-right controls to run at 1×, 2×, or 5× speed, or pause the
   battle. You can still select units and give orders while paused. Choose a
@@ -84,10 +84,16 @@ between their rotated square footprints is 8 m. The primary pair turns to face
 each other using the normal turn rate, adjusting spacing as their footprints
 rotate. Move orders are ignored
 for engaged units; other selected units can still receive orders. Each fighting
-unit inflicts one casualty per simulated second, split evenly among its opponents
+unit inflicts a base of one casualty per simulated second, split evenly among its opponents
 in fighting range. Each unit accumulates fractional losses until they add up to
 whole casualties. Units disappear when their count reaches zero. Casualties
 follow simulation speed and stop while paused.
+
+Units start with 100 vigour. Marching drains 0.1 vigour per simulated second
+spent moving, and fighting drains 1 per simulated second regardless of opponent
+count. At zero vigour, units deal 50% less damage and take 50% more. Both
+modifiers scale linearly with vigour lost and multiply when applied to the
+same attack.
 
 The HUD distinguishes units closing on an enemy, units within fighting range, and passively engaged reinforcements. Fighting and passively
 engaged allies are solid to units moving freely.
