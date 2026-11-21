@@ -11,6 +11,23 @@ from units import Army, MAP_SIZE, MAP_HALF
 from selection import SelectionGesture, FormationGesture
 
 
+def speed_buttons(size):
+    width, height = size
+    buttons = ((0, 'Pause'), (1, '1×'), (2, '2×'), (5, '5×'))
+    left = width - 286
+    for index, (speed, label) in enumerate(buttons):
+        yield speed, label, pygame.Rect(left + index * 70, height - 48, 64, 34)
+
+
+def draw_speed_controls(screen, font, speed):
+    for multiplier, label, rect in speed_buttons(screen.get_size()):
+        active = multiplier == speed
+        pygame.draw.rect(screen, '#ffc875' if active else '#182532', rect, border_radius=5)
+        pygame.draw.rect(screen, '#ffc875' if active else '#65798a', rect, 1, border_radius=5)
+        text = font.render(label, True, '#182532' if active else '#d4e0eb')
+        screen.blit(text, text.get_rect(center=rect.center))
+
+
 @dataclass
 class Camera:
     """Map coordinates are meters, with positive Y pointing north (up)."""
@@ -176,11 +193,13 @@ def draw_interface(screen, camera, font, army, gesture, formation):
         ('passive', 'Passively engaged')) if key in combat_states)
     if combat_state:
         state = f'{state}, {combat_state}' if marching or turning else combat_state
+    hovered = army.hit(camera.to_world(pygame.mouse.get_pos(), screen.get_size()))
+    strength = f'   |   Unit under cursor: {hovered.men_alive} alive' if hovered else ''
     lines = [
         'BATTLE SIMULATOR  /  REAL TIME',
         'Left: select   |   Ctrl+left: toggle   |   Right drag: formation   |   Middle: pan   |   Wheel: zoom',
         'Field: 4 km x 4 km   |   Units: 50 m x 50 m   |   Space: all orders   |   Home: overview   |   Esc: quit',
-        f'Selected: {len(army.selected)}   |   {state}   |   500 infantry per block   |   Blue: friendly   |   Red: enemy',
+        f'Selected: {len(army.selected)}   |   {state}   |   Blue: friendly   |   Red: enemy{strength}',
     ]
     panel = pygame.Surface((screen.get_width(), 122), pygame.SRCALPHA)
     panel.fill((12, 19, 27, 235))
@@ -200,6 +219,7 @@ def main():
     army = Army.test_army()
     gesture = SelectionGesture()
     formation = FormationGesture()
+    speed = 1
     panning = False
     running = True
     try:
@@ -214,6 +234,13 @@ def main():
                     elif event.key == pygame.K_HOME:
                         camera = Camera.overview(screen.get_size())
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    clicked_speed = next((multiplier for multiplier, _, rect
+                                          in speed_buttons(screen.get_size())
+                                          if rect.collidepoint(event.pos)), None)
+                    if clicked_speed is not None:
+                        if event.button == 1:
+                            speed = clicked_speed
+                        continue
                     if event.button == 1:
                         gesture.begin(event.pos, camera, screen.get_size(), army,
                                       toggle=bool(pygame.key.get_mods() & pygame.KMOD_CTRL))
@@ -239,10 +266,14 @@ def main():
                     panning = False
                 elif event.type == pygame.MOUSEWHEEL:
                     camera.zoom(event.y, pygame.mouse.get_pos(), screen.get_size())
-            army.update(dt)
+            # Extra updates keep simulation steps the same size at every speed.
+            if running:
+                for _ in range(speed):
+                    army.update(dt)
             draw_map(screen, camera, font)
             draw_units(screen, camera, army)
             draw_interface(screen, camera, font, army, gesture, formation)
+            draw_speed_controls(screen, font, speed)
             pygame.display.flip()
     finally:
         pygame.quit()

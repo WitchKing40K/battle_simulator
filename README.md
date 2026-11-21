@@ -2,7 +2,7 @@
 
 A real-time pygame-ce battle prototype with a bordered 4 km × 4 km grass field, camera panning,
 cursor-centered zoom, and ten 50 m × 50 m test units (eight friendly, two enemy).
-Each block represents about 500 medieval infantry. Units march at up to
+Each block starts with 500 medieval infantry. Units march at up to
 10 meters per second.
 The battlefield runs from -2,000 m to +2,000 m on each axis. Movement orders
 shift formations inside the border, keeping the whole unit footprint on the field.
@@ -38,15 +38,19 @@ On Windows, use `py` instead of `python3` and activate with `.venv\Scripts\activ
 - Selected units always show their active movement destinations, order lines,
   and ordered facing. Hold Space to show orders for all friendly units; release
   Space to return to selected units only.
-- Drag the middle mouse button to pan. Scroll to zoom around the cursor.
+- Hover over a unit to see how many men are alive. Drag the middle mouse
+  button to pan. Scroll to zoom around the cursor.
+- Use the bottom-right controls to run at 1×, 2×, or 5× speed, or pause the
+  battle. You can still select units and give orders while paused. Choose a
+  speed to resume and carry out those orders.
 - Press Home to fit the whole field into the view, or Escape to quit. Resize the window freely.
 
 Positions and destinations are in meters, with X east and Y north. Selection and
 orders use the same camera transforms as the map. Grass detail stays anchored to the field as you pan and zoom.
 At extreme zoom-out, units can
 be smaller than a pixel and precise clicking is difficult; box selection still
-uses their actual world bounds. Simulation continues during camera and selection
-operations.
+uses their actual world bounds. Camera and selection operations work at every
+speed, including while paused.
 
 ## Group movement
 
@@ -79,8 +83,11 @@ Both units cancel their orders and close at their movement speeds until the gap
 between their rotated square footprints is 8 m. The primary pair turns to face
 each other using the normal turn rate, adjusting spacing as their footprints
 rotate. Move orders are ignored
-for engaged units; other selected units can still receive orders. Engagements
-persist indefinitely. There is no damage, health, morale, or attack animation.
+for engaged units; other selected units can still receive orders. Each fighting
+unit inflicts one casualty per simulated second, split evenly among its opponents
+in fighting range. Each unit accumulates fractional losses until they add up to
+whole casualties. Units disappear when their count reaches zero. Casualties
+follow simulation speed and stop while paused.
 
 The HUD distinguishes units closing on an enemy, units within fighting range, and passively engaged reinforcements. Fighting and passively
 engaged allies are solid to units moving freely.
