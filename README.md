@@ -89,14 +89,20 @@ in fighting range. Each unit accumulates fractional losses until they add up to
 whole casualties. Units disappear when their count reaches zero. Casualties
 follow simulation speed and stop while paused.
 
-Units start with 100 vigour. Marching drains 0.1 vigour per simulated second
-spent moving, and fighting drains 1 per simulated second regardless of opponent
-count. At zero vigour, units deal 50% less damage and take 50% more. Both
+Units start with 100 vigour. Marching drains 0.05 vigour per simulated second
+spent moving, and fighting drains 0.7 per simulated second regardless of opponent
+count. Idle units recover 0.05 vigour per simulated second up to 50.
+At zero vigour, units deal 50% less damage and take 50% more. Both
 modifiers scale linearly with vigour lost and multiply when applied to the
 same attack.
 
 The HUD distinguishes units closing on an enemy, units within fighting range, and passively engaged reinforcements. Fighting and passively
 engaged allies are solid to units moving freely.
+For selected or hovered fighters, the HUD shows the outcome of their fight.
+Each side's casualty rate is its projected losses per simulated second divided
+by its total surviving fighters in that fight. A fight is a stalemate when the
+higher rate is at most 110% of the lower rate. Otherwise, the side with the
+lower rate is winning, decisively if the higher rate exceeds twice the lower rate.
 A unit that reaches the rear or side of a solid ally stops at contact,
 cancels its order, and joins the engagement passively. It then settles toward
 its ally. While closing, fighting, or providing passive support, engaged allies

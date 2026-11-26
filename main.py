@@ -189,7 +189,9 @@ def draw_interface(screen, camera, font, army, gesture, formation):
     state = 'Marching' if marching else 'Turning' if turning else 'Ready'
     combat_states = {u.combat_state for u in army.selected}
     combat_state = ', '.join(label for key, label in (
-        ('closing', 'Closing to engage'), ('fighting', 'Fighting'),
+        ('closing', 'Closing to engage'),
+        ('fighting', ', '.join(sorted({u.combat_outcome or 'Fighting'
+                                      for u in army.selected if u.combat_state == 'fighting'}))),
         ('passive', 'Passively engaged')) if key in combat_states)
     if combat_state:
         state = f'{state}, {combat_state}' if marching or turning else combat_state
@@ -197,6 +199,8 @@ def draw_interface(screen, camera, font, army, gesture, formation):
     strength = ''
     if hovered:
         strength = f'   |   Hovered: {hovered.men_alive} alive, {hovered.vigour:.1f} vigour'
+        if hovered.combat_outcome:
+            strength += f', {hovered.combat_outcome.lower()}'
     lines = [
         'BATTLE SIMULATOR  /  REAL TIME',
         'Left: select   |   Ctrl+left: toggle   |   Right drag: formation   |   Middle: pan   |   Wheel: zoom',
