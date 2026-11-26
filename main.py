@@ -195,23 +195,27 @@ def draw_interface(screen, camera, font, army, gesture, formation):
         ('passive', 'Passively engaged')) if key in combat_states)
     if combat_state:
         state = f'{state}, {combat_state}' if marching or turning else combat_state
+    morale_states = sorted({u.morale_state for u in army.selected if u.morale_state != 'Steady'})
+    if morale_states:
+        state += f', {", ".join(morale_states)}'
     hovered = army.hit(camera.to_world(pygame.mouse.get_pos(), screen.get_size()))
-    strength = ''
-    if hovered:
-        strength = f'   |   Hovered: {hovered.men_alive} alive, {hovered.vigour:.1f} vigour'
-        if hovered.combat_outcome:
-            strength += f', {hovered.combat_outcome.lower()}'
     lines = [
         'BATTLE SIMULATOR  /  REAL TIME',
         'Left: select   |   Ctrl+left: toggle   |   Right drag: formation   |   Middle: pan   |   Wheel: zoom',
         'Field: 4 km x 4 km   |   Units: 50 m x 50 m   |   Space: all orders   |   Home: overview   |   Esc: quit',
-        f'Selected: {len(army.selected)}   |   {state}   |   Blue: friendly   |   Red: enemy{strength}',
+        f'Selected: {len(army.selected)}   |   {state}   |   Blue: friendly   |   Red: enemy',
     ]
-    panel = pygame.Surface((screen.get_width(), 122), pygame.SRCALPHA)
+    if hovered:
+        strength = (f'Hovered: {hovered.men_alive} alive, {hovered.vigour:.1f} vigour, '
+                    f'{hovered.morale:.1f} morale ({hovered.morale_state.lower()})')
+        if hovered.combat_outcome:
+            strength += f', {hovered.combat_outcome.lower()}'
+        lines.append(strength)
+    panel = pygame.Surface((screen.get_width(), 22 + 25 * len(lines)), pygame.SRCALPHA)
     panel.fill((12, 19, 27, 235))
     screen.blit(panel, (0, 0))
     for i, line in enumerate(lines):
-        screen.blit(font.render(line, True, '#ffc875' if i == 3 else '#d4e0eb'), (18, 14 + i * 25))
+        screen.blit(font.render(line, True, '#ffc875' if i >= 3 else '#d4e0eb'), (18, 14 + i * 25))
 
 
 def main():

@@ -103,6 +103,15 @@ Each side's casualty rate is its projected losses per simulated second divided
 by its total surviving fighters in that fight. A fight is a stalemate when the
 higher rate is at most 110% of the lower rate. Otherwise, the side with the
 lower rate is winning, decisively if the higher rate exceeds twice the lower rate.
+
+Units start at 100 morale. Losing 1% of a unit's current soldiers costs 1.5
+morale, and losing a fight adds 0.5 morale loss per simulated second, or 1.5
+when losing decisively. Low vigour increases both losses, by up to 50%.
+At 50 morale or below, units are shaken and can be ordered to withdraw.
+At 20 morale or below, units rout, break contact and keep retreating until they rally.
+Outside enemy engagement range, morale recovers at 0.5–1 point per simulated
+second depending on vigour. Routing units rally at 40 morale and can take
+orders again. Hover over a unit to see its morale and state.
 A unit that reaches the rear or side of a solid ally stops at contact,
 cancels its order, and joins the engagement passively. It then settles toward
 its ally. While closing, fighting, or providing passive support, engaged allies
