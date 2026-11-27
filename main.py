@@ -206,7 +206,7 @@ def draw_interface(screen, camera, font, army, gesture, formation):
         f'Selected: {len(army.selected)}   |   {state}   |   Blue: friendly   |   Red: enemy',
     ]
     if hovered:
-        strength = (f'Hovered: {hovered.men_alive} alive, {hovered.vigour:.1f} vigour, '
+        strength = (f'{hovered.unit_type.name}: {hovered.men_alive} alive, {hovered.vigour:.1f} vigour, '
                     f'{hovered.morale:.1f} morale ({hovered.morale_state.lower()})')
         if hovered.combat_outcome:
             strength += f', {hovered.combat_outcome.lower()}'
